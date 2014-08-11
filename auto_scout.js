@@ -1,7 +1,7 @@
 var util = require('util');
 var Scout = require('zetta').Scout;
 
-var MockScout = module.exports = function(devices) {
+var AutoScout = module.exports = function(devices) {
   Scout.call(this);
 
   this.devices = Array.isArray(devices)
@@ -9,9 +9,9 @@ var MockScout = module.exports = function(devices) {
                    : [devices];
 
 };
-util.inherits(MockScout, Scout);
+util.inherits(AutoScout, Scout);
 
-MockScout.prototype.init = function(cb) {
+AutoScout.prototype.init = function(cb) {
   for(var i = 0; i < this.devices.length; i++) {
     var device = this.devices[0];
 
