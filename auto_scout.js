@@ -1,43 +1,51 @@
 var util = require('util');
 var Scout = require('zetta').Scout;
 
-var AutoScout = module.exports = function(devices) {
+var AutoScout = module.exports = function() {
+  var args = Array.prototype.slice.call(arguments);
+
+  this.filter = args[0];
+  this.constructor = args[1];
+  this.params = args.slice(2);
+
+  if (!(this instanceof AutoScout)) {
+    var scout = new AutoScout();
+    scout.filter = this.filter;
+    scout.constructor = this.constructor;
+    scout.params = this.params;
+
+    return scout;
+  }
+
   Scout.call(this);
-
-  this.devices = Array.isArray(devices)
-                   ? devices
-                   : [devices];
-
 };
 util.inherits(AutoScout, Scout);
 
 AutoScout.prototype.init = function(cb) {
-  for(var i = 0; i < this.devices.length; i++) {
-    var device = this.devices[0];
+  var filter = typeof this.filter === 'string'
+                 ? { type: this.filter }
+                 : this.filter;
 
-    var filter = typeof device.filter === 'string'
-                   ? { type: device.filter }
-                   : device.filter;
+  var query = this.server.where(filter);
 
-    var query = this.server.where(filter);
+  var applyArgs = [].concat(this.params || []);
+  applyArgs.unshift(this.constructor);
 
-    var self = this;
-    this.server.find(query, function(err, results) {
-      if (err) {
-        return cb(err);
-      };
+  var self = this;
+  this.server.find(query, function(err, results) {
+    if (err) {
+      return cb(err);
+    };
 
-      if (results.length) {
-        results.forEach(function(result) {
-          self.provision(result, device.constructor);
-        });
-      } else {
-        self.discover(device.constructor);
-      }
+    if (results.length) {
+      results.forEach(function(result) {
+        applyArgs.unshift(result);
+        self.provision.apply(self, applyArgs);
+      });
+    } else {
+      self.discover.apply(self, applyArgs);
+    }
 
-      if (i === this.devices.length - 1) {
-        cb();
-      }
-    });
-  }
+    cb();
+  });
 };
