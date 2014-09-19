@@ -1,10 +1,10 @@
 {
   "name": "zetta-auto-scout",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A basic Scout for auto-wiring devices in Zetta.",
   "main": "auto_scout.js",
   "dependencies": {
-    "zetta": "~0.2.0"
+    "zetta": "^0.10.0"
   },
   "devDependencies": {},
   "scripts": {
