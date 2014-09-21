@@ -1,5 +1,5 @@
 var util = require('util');
-var Scout = require('zetta').Scout;
+var Scout = require('zetta-scout');
 
 var AutoScout = module.exports = function() {
   var args = Array.prototype.slice.call(arguments);

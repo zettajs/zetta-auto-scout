@@ -3,9 +3,7 @@
   "version": "0.3.0",
   "description": "A basic Scout for auto-wiring devices in Zetta.",
   "main": "auto_scout.js",
-  "dependencies": {
-    "zetta": "^0.10.0"
-  },
+  "dependencies": {},
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
