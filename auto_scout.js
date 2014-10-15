@@ -41,6 +41,7 @@ AutoScout.prototype.init = function(cb) {
       results.forEach(function(result) {
         applyArgs.unshift(result);
         self.provision.apply(self, applyArgs);
+        applyArgs.unshift();
       });
     } else {
       self.discover.apply(self, applyArgs);
