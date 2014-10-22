@@ -1,4 +1,5 @@
 var util = require('util');
+var crypto = require('crypto');
 var Scout = require('zetta-scout');
 
 var AutoScout = module.exports = function() {
@@ -21,11 +22,19 @@ var AutoScout = module.exports = function() {
 };
 util.inherits(AutoScout, Scout);
 
+AutoScout.prototype._hash = function() {
+  var stringifiedParams = JSON.stringify(this.params);
+  var hash = crypto.createHash('sha1');
+  hash.update(stringifiedParams);
+  return hash.digest('hex');
+};
+
 AutoScout.prototype.init = function(cb) {
   var filter = typeof this.filter === 'string'
                  ? { type: this.filter }
                  : this.filter;
-
+  var deviceHash = this._hash();
+  filter.hash = deviceHash;
   var query = this.server.where(filter);
 
   var applyArgs = [].concat(this.params || []);
@@ -38,14 +47,19 @@ AutoScout.prototype.init = function(cb) {
     };
 
     if (results.length) {
-      results.forEach(function(result) {
-        applyArgs.unshift(result);
-        self.provision.apply(self, applyArgs);
-        applyArgs.unshift();
-      });
+      var result = results[0];
+      applyArgs.unshift(result);
+      var device = self.provision.apply(self, applyArgs);
     } else {
-      self.discover.apply(self, applyArgs);
+      var device = self.discover.apply(self, applyArgs);
+      device.hash = deviceHash;
+      device.save();
     }
+
+    if(device.hash) {
+      delete device.hash;
+    }
+
 
     cb();
   });
