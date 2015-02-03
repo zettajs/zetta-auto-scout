@@ -41,25 +41,45 @@ AutoScout.prototype.init = function(cb) {
   applyArgs.unshift(this.constructor);
 
   var self = this;
+
   this.server.find(query, function(err, results) {
     if (err) {
       return cb(err);
     };
 
-    if (results.length) {
-      var result = results[0];
-      applyArgs.unshift(result);
-      var device = self.provision.apply(self, applyArgs);
-    } else {
-      var device = self.discover.apply(self, applyArgs);
+    if (!self._deviceInstance) {
+      if (results.length) {
+        var result = results[0];
+        applyArgs.unshift(result);
+        var device = self.provision.apply(self, applyArgs);
+      } else {
+        var device = self.discover.apply(self, applyArgs);
+      }
+
       device.hash = deviceHash;
-      device.save();
-    }
+      device.save(function() {
+        delete device.hash;
+      });
+    } else {
+      var machine = self._deviceInstance;
+      machine.hash = deviceHash;
 
-    if(device.hash) {
-      delete device.hash;
-    }
+      if (results.length) {
+        machine.id = results[0].id; // must set id before machine_config runs
+        machine.name = results[0].name;
+      }
 
+      self.server.registry.save(machine, function(err){
+        delete machine.hash;
+        self.server._jsDevices[machine.id] = machine;
+        self.server.emit('deviceready', machine);
+        if (results.length) {
+          self.server._log.emit('log','scout', 'Device (' + machine.type + ') ' + machine.id + ' was provisioned from registry.' );
+        } else {
+          self.server._log.emit('log','scout', 'Device (' + machine.type + ') ' + machine.id + ' was discovered' );
+        }
+      });
+    }
 
     cb();
   });
