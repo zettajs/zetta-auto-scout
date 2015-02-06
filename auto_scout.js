@@ -56,10 +56,13 @@ AutoScout.prototype.init = function(cb) {
         var device = self.discover.apply(self, applyArgs);
       }
 
-      device.hash = deviceHash;
-      device.save(function() {
-        delete device.hash;
-      });
+      // device is not always populated in the case of .provision
+      if (device) {
+        device.hash = deviceHash;
+        device.save(function() {
+          delete device.hash;
+        });
+      }
     } else {
       var machine = self._deviceInstance;
       machine.hash = deviceHash;
