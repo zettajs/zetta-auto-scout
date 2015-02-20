@@ -64,13 +64,15 @@ AutoScout.prototype.init = function(cb) {
         });
       }
     } else {
-      var machine = self._deviceInstance;
+      var machine = self._deviceInstance.instance;
       machine.hash = deviceHash;
 
       if (results.length) {
         machine.id = results[0].id; // must set id before machine_config runs
         machine.name = results[0].name;
       }
+
+      machine._generate(self._deviceInstance.config);
 
       self.server.registry.save(machine, function(err){
         delete machine.hash;
