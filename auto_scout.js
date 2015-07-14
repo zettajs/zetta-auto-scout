@@ -22,7 +22,7 @@ var AutoScout = module.exports = function() {
 };
 util.inherits(AutoScout, Scout);
 
-AutoScout.prototype._hash = function() {
+AutoScout.prototype._generateHash = function() {
   var stringifiedParams = JSON.stringify(this.params);
   var hash = crypto.createHash('sha1');
   hash.update(stringifiedParams);
@@ -33,7 +33,7 @@ AutoScout.prototype.init = function(cb) {
   var filter = typeof this.filter === 'string'
                  ? { type: this.filter }
                  : this.filter;
-  var deviceHash = this._hash();
+  var deviceHash = this._generateHash();
   filter.hash = deviceHash;
   var query = this.server.where(filter);
 
@@ -58,24 +58,24 @@ AutoScout.prototype.init = function(cb) {
 
       // device is not always populated in the case of .provision
       if (device) {
-        device.hash = deviceHash;
-        device.save(function() {
-          delete device.hash;
-        });
+        device.hash = self._generateHash();
+        device.save();
       }
     } else {
       var machine = self._deviceInstance.instance;
-      machine.hash = deviceHash;
-
-      if (results.length) {
-        machine.id = results[0].id; // must set id before machine_config runs
-        machine.name = results[0].name;
-      }
+      machine.hash = self._generateHash();
 
       machine._generate(self._deviceInstance.config);
 
+      // update in-memory representation with any saved properties
+      if (results.length) {
+        var base = results[0];
+        Object.keys(base).forEach(function(key) {
+          machine[key] = base[key];
+        });
+      }
+
       self.server.registry.save(machine, function(err){
-        delete machine.hash;
         self.server._jsDevices[machine.id] = machine;
         self.server.emit('deviceready', machine);
         if (results.length) {
