@@ -4,7 +4,7 @@
   "description": "A basic Scout for auto-wiring devices in Zetta.",
   "main": "auto_scout.js",
   "dependencies": {
-    "zetta-scout": "^0.3.0"
+    "zetta-scout": "^0.6.0"
   },
   "devDependencies": {},
   "scripts": {
